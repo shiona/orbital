@@ -376,7 +376,7 @@ class Connections
 			}
 
 			// Intersatellite links
-			for(int i = 0; i < vertArray.size()-1; i++) {
+			for(int i = 2; i < vertArray.size()-1; i++) {
 				for(int j = i+1; j < vertArray.size(); j++) {
 					glm::vec3 closest_point = glm::closestPointOnLine(glm::vec3(0.0f), vertArray[i], vertArray[j]);
 					if(glm::distance(closest_point, glm::vec3(0.0f)) > 1.0f ||
