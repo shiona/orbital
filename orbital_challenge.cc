@@ -1,4 +1,6 @@
+#ifdef __MINGW32__
 #define _GLIBCXX_USE_CXX11_ABI 0
+#endif
 
 //#define GL_GLEXT_PROTOTYPES
 //#include <GL/glext.h>
@@ -132,7 +134,6 @@ class Tower
 			glBindBuffer (GL_ARRAY_BUFFER, tex_vbo_);
 			glBufferData (GL_ARRAY_BUFFER, 2*vert_count*sizeof(float), &texArray[0], GL_STATIC_DRAW);
 
-			// Sphere vao, attr 0 is vertex position, attr 1 is uv coordinates
 			glGenVertexArrays(1, &vao_);
 			glBindVertexArray(vao_);
 
@@ -262,7 +263,6 @@ class Satellite
 			glBindBuffer (GL_ARRAY_BUFFER, tex_vbo_);
 			glBufferData (GL_ARRAY_BUFFER, 2*vert_count*sizeof(float), &texArray[0], GL_STATIC_DRAW);
 
-			// Sphere vao, attr 0 is vertex position, attr 1 is uv coordinates
 			glGenVertexArrays(1, &vao_);
 			glBindVertexArray(vao_);
 
@@ -368,9 +368,9 @@ class Connections
 						indices.push_back(i);
 						indices.push_back(j);
 						conn_count_++;
-						std::cout<<i<<" - " <<j<<"\n";
+						//std::cout<<i<<" - " <<j<<"\n";
 					} else {
-						std::cout<<i<<" | " <<j<<"\n";
+						//std::cout<<i<<" | " <<j<<"\n";
 					}
 				}
 			}
@@ -385,9 +385,9 @@ class Connections
 						indices.push_back(i);
 						indices.push_back(j);
 						conn_count_++;
-						std::cout<<i<<" - " <<j<<"\n";
+						//std::cout<<i<<" - " <<j<<"\n";
 					} else {
-						std::cout<<i<<" | " <<j<<"\n";
+						//std::cout<<i<<" | " <<j<<"\n";
 					}
 				}
 			}
@@ -515,13 +515,24 @@ class Sphere
 		bool setTexture(const std::string& tex_file_name) {
 			sf::Image img_data;
 
+			GLint max_tex_size = -1;
+			glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_tex_size);
+			printf("Max tex size: %d\n", max_tex_size);
+
 			if(!img_data.loadFromFile(tex_file_name)) {
 				printf("Could not load texture '%s'\n", tex_file_name.c_str());
 				return false;
 			}
+			GLuint h = img_data.getSize().y;
+			GLuint w = img_data.getSize().x;
+			printf("Earth tex mid point alpha from img_data: %d\n", img_data.getPixel(w/2, h/2).a);
+			printf("Earth tex mid point alpha from buffer: %d\n", img_data.getPixelsPtr()[4*((h/2)*w + w/2) + 3]);
 			glGenTextures(1, &texture_handle_);
+			printf("a: %d\n", glGetError());
 			glBindTexture(GL_TEXTURE_2D, texture_handle_);
+			printf("b: %d\n", glGetError());
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_data.getSize().x, img_data.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.getPixelsPtr());
+			printf("c: %d\n", glGetError());
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -532,6 +543,7 @@ class Sphere
 
 		void draw() {
 			//glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+			glPolygonMode( GL_FRONT, GL_FILL );
 
 			glUseProgram (shader_programme);
 
@@ -561,13 +573,15 @@ bool init()
 	glClearColor(0.01f,0.05f,0.1,1.0f);
 
 	const char* vertex_shader =
-		"#version 400\n"
+		"#version 130\n"
 		//"in vec3 vp;"
 		"uniform mat4 proj_mat;"
 		"uniform mat4 model_mat;"
 		"uniform mat4 view_mat;"
-		"layout(location = 0) in vec3 vp;"
-		"layout(location = 1) in vec2 tex;"
+		//"layout(location = 0) in vec3 vp;"
+		//"layout(location = 1) in vec2 tex;"
+		"in vec3 vp;"
+		"in vec2 tex;"
 		"out vec2 tex_coord;"
 		"void main () {"
 		"  tex_coord = tex;"
@@ -579,7 +593,7 @@ bool init()
 		"}";
 
 	const char* fragment_shader =
-		"#version 400\n"
+		"#version 130\n"
 		"in vec2 tex_coord;"
 		"out vec4 frag_colour;"
 		"uniform sampler2D tex_sampler;"
@@ -639,10 +653,18 @@ int main()
 	settings.depthBits = 24;
 	settings.stencilBits = 8;
 	settings.antialiasingLevel = 8;
-	settings.majorVersion = 4;
-	settings.minorVersion = 4;
+	settings.majorVersion = 3;
+	settings.minorVersion = 0;
 
 	sf::Window window (sf::VideoMode(WIDTH, HEIGHT), "Orbital Challenge", sf::Style::Default, settings);
+
+	settings = window.getSettings();
+	//window.setVerticalSyncEnabled(true);
+
+	std::cout << "depth bits:" << settings.depthBits << std::endl;
+	std::cout << "stencil bits:" << settings.stencilBits << std::endl;
+	std::cout << "antialiasing level:" << settings.antialiasingLevel << std::endl;
+	std::cout << "version:" << settings.majorVersion << "." << settings.minorVersion << std::endl;
 
 	init();
 
@@ -655,6 +677,7 @@ int main()
 	std::vector<Position> ground_station_positions;
 
 	{
+		std::cout<<"Opening file\n";
 		std::ifstream datafile("origdata");
 		std::string tmp;
 		getline(datafile, tmp);
@@ -676,7 +699,7 @@ int main()
 				comma_pos = tmp.find_first_of(',',comma_pos+1);
 				//std::cout<<"##"<<tmp.substr(comma_pos+1)<<"##\n";
 				alt = std::stof(tmp.substr(comma_pos+1));
-				std::cout<<lat << " " << lon << " " << alt <<"\n";
+				//std::cout<<lat << " " << lon << " " << alt <<"\n";
 
 				satellite_positions.push_back(Position(lat, lon, alt));
 			} else if(tmp.compare(0,5, "ROUTE") == 0) {
@@ -705,14 +728,20 @@ int main()
 
 	Sphere earth = Sphere(36, 56, 1.0f);
 	earth.setTexture("earth_tex.jpg");
+	std::cout<<"Planet done\n";
 
 	Tower tower;
 	tower.setTexture("tower_tex_transparent.png");
+	std::cout<<"Tower done\n";
 
 	Satellite sat;
 	sat.setTexture("satellite_tex_transparent.png");
+	std::cout<<"Satellite done\n";
 
 	Connections conns = Connections(ground_station_positions[0], ground_station_positions[1], satellite_positions);
+
+	sf::Clock fps_clock;
+	GLuint frame_counter = 0;
 
 	while (running)
 	{
@@ -782,6 +811,14 @@ int main()
 		tower.draw(ground_station_positions[1]);
 
 		window.display();
+
+		if(++frame_counter == 10) {
+			printf("FPS: %f\n", 10000.0f / fps_clock.getElapsedTime().asMilliseconds());
+			frame_counter = 0;
+			fps_clock.restart();
+		}
+
+		//sf::sleep(sf::milliseconds(1));
 	}
 	return 0;
 }
