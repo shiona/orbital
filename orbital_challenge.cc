@@ -10,6 +10,7 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 
+#include <gtx/rotate_vector.hpp>
 #include <gtx/closest_point.hpp>
 
 #include <SFML/Window.hpp>
@@ -656,10 +657,13 @@ int main()
 	settings.majorVersion = 3;
 	settings.minorVersion = 0;
 
-	sf::Window window (sf::VideoMode(WIDTH, HEIGHT), "Orbital Challenge", sf::Style::Default, settings);
+	GLuint window_width = WIDTH;
+	GLuint window_height = HEIGHT;
+
+	sf::Window window (sf::VideoMode(window_width, window_height), "Orbital Challenge", sf::Style::Default, settings);
 
 	settings = window.getSettings();
-	//window.setVerticalSyncEnabled(true);
+	window.setVerticalSyncEnabled(true);
 
 	std::cout << "depth bits:" << settings.depthBits << std::endl;
 	std::cout << "stencil bits:" << settings.stencilBits << std::endl;
@@ -672,6 +676,7 @@ int main()
 
 	GLfloat theta = 0.0f;
 	GLfloat sigma = 0.0f;
+
 
 	std::vector<Position> satellite_positions;
 	std::vector<Position> ground_station_positions;
@@ -756,48 +761,94 @@ int main()
 			}
 			else if (event.type == sf::Event::Resized)
 			{
+				window_width = event.size.width;
+				window_height = event.size.height;
 				// adjust the viewport when the window is resized
-				glViewport(0, 0, event.size.width, event.size.height);
+				glViewport(0, 0, window_width, window_height);
 
 				// Reset projection matrix to keep aspect ratio.
 				glUseProgram (shader_programme);
 				GLuint proj_handle = glGetUniformLocation(shader_programme, "proj_mat");
-				glm::mat4 proj_mat = glm::perspective(glm::radians(30.0f), (float) event.size.width / (float) event.size.height, 0.1f, 100.0f);
+				glm::mat4 proj_mat = glm::perspective(glm::radians(30.0f), (float) window_width / (float) window_height, 0.1f, 100.0f);
 				glUniformMatrix4fv(proj_handle, 1, GL_FALSE, &proj_mat[0][0]);
 			}
 			else if (event.type == sf::Event::KeyPressed) {
-				switch(event.key.code) {
-					case sf::Keyboard::W:
-						sigma += 0.04f;
-						if(sigma > 1.5) { sigma = 1.5f; }
-						break;
-					case sf::Keyboard::S:
-						sigma -= 0.04f;
-						if(sigma < -1.5) { sigma = -1.5f; }
-						break;
-					case sf::Keyboard::D:
-						theta += 0.04f;
-						break;
-					case sf::Keyboard::A:
-						theta -= 0.04f;
-						break;
-					default:
-						break;
+				if(event.key.code == sf::Keyboard::Q) {
+					running = false;
 				}
 			}
 		}
+		GLfloat moveSpeed = 0.01f;
+		if(sf::Keyboard::isKeyPressed( sf::Keyboard::LShift )) {
+			moveSpeed *= 5.0f;
+		} else if(sf::Keyboard::isKeyPressed( sf::Keyboard::LControl )) {
+			moveSpeed /= 5.0f;
+		}
+
+		if(sf::Keyboard::isKeyPressed( sf::Keyboard::W )) {
+			sigma += moveSpeed;
+		} if(sf::Keyboard::isKeyPressed( sf::Keyboard::S )) {
+			sigma -= moveSpeed;
+		} if(sf::Keyboard::isKeyPressed( sf::Keyboard::D )) {
+			theta += moveSpeed;
+		} if(sf::Keyboard::isKeyPressed( sf::Keyboard::A )) {
+			theta -= moveSpeed;
+		}
+
+		glm::vec3 lookatpos(0.0f, 0.0f, 0.0f);
+
+		GLfloat zoomfactor = 1.0f;
+
+		for(int i = 0; i < sf::Joystick::Count; i++) {
+			if(sf::Joystick::isConnected(i)) {
+				float y = - sf::Joystick::getAxisPosition(0, sf::Joystick::Y);
+				float x = sf::Joystick::getAxisPosition(0, sf::Joystick::X);
+				float u = - sf::Joystick::getAxisPosition(0, sf::Joystick::U);
+				float r = sf::Joystick::getAxisPosition(0, sf::Joystick::R);
+				float z = sf::Joystick::getAxisPosition(0, sf::Joystick::Z);
+				printf("Joy %i, x: %0.3f, y: %0.3f, u: %0.3f, r: %0.3f, z: %0.3f\n", i, x, y, u, r, z);
+				const float DEADZONE = 5.0f;
+				if( x < DEADZONE && x > -DEADZONE ) { x = 0; }
+				if( y < DEADZONE && y > -DEADZONE ) { y = 0; }
+				/*if( u < DEADZONE && u > -DEADZONE ) { u = 0; }
+				if( r < DEADZONE && r > -DEADZONE ) { r = 0; }*/
+				if(z > 0) { z = 0; }
+				sigma += y*0.0002f;
+				theta += x*0.0002f;
+				lookatpos[0] = -u*0.01;
+				lookatpos[1] = -r*0.01;
+
+				zoomfactor = 1 + z*0.0075;
+			}
+		}
+		if(sigma > 1.4) { sigma = 1.4f; }
+		if(sigma < -1.4) { sigma = -1.4f; }
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram (shader_programme);
 
+		glm::vec3 campos = glm::vec3(5*sin(theta)*cos(sigma),5*sin(sigma),5*cos(theta)*cos(sigma));
+
+		//glm::vec3 lookatpos = glm::vec3(0.0f, 1.0f, 0.0f);
+
+		lookatpos = glm::rotateX(lookatpos, (float)(-sigma));
+		lookatpos = glm::rotateY(lookatpos, (float)(theta));
 
 		glm::mat4 view_mat = glm::lookAt(
-			glm::vec3(5*sin(theta)*cos(sigma),5*sin(sigma),5*cos(theta)*cos(sigma)),
-			glm::vec3(0,0,0), // and looks at the origin
+			//glm::vec3(5*sin(theta)*cos(sigma),5*sin(sigma),5*cos(theta)*cos(sigma)),
+			//glm::vec3(0,0,0), // and looks at the origin
+			campos,
+			lookatpos,
 			glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
 		);
 		glUniformMatrix4fv(view_handle, 1, GL_FALSE, &view_mat[0][0]);
+
+		GLuint proj_handle = glGetUniformLocation(shader_programme, "proj_mat");
+		glm::mat4 proj_mat = glm::perspective(glm::radians(zoomfactor*30.0f), (float) window_width / (float) window_height, 0.1f, 100.0f);
+		glUniformMatrix4fv(proj_handle, 1, GL_FALSE, &proj_mat[0][0]);
+
+		glLineWidth(1/zoomfactor);
 
 		earth.draw();
 
