@@ -648,7 +648,8 @@ bool init()
 	glUniformMatrix4fv(proj_handle, 1, GL_FALSE, &proj_mat[0][0]);
 }
 
-int main()
+
+int main(int argc, char **argv)
 {
 	sf::ContextSettings settings;
 	settings.depthBits = 24;
@@ -670,6 +671,12 @@ int main()
 	std::cout << "antialiasing level:" << settings.antialiasingLevel << std::endl;
 	std::cout << "version:" << settings.majorVersion << "." << settings.minorVersion << std::endl;
 
+	std::string datafilename = "origdata";
+
+	if(argc > 1) {
+		datafilename = std::string(argv[1]);
+	}
+
 	init();
 
 	bool running = true;
@@ -683,7 +690,7 @@ int main()
 
 	{
 		std::cout<<"Opening file\n";
-		std::ifstream datafile("origdata");
+		std::ifstream datafile(datafilename);
 		std::string tmp;
 		getline(datafile, tmp);
 
