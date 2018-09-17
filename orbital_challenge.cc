@@ -2,16 +2,17 @@
 #define _GLIBCXX_USE_CXX11_ABI 0
 #endif
 
+#define GLM_ENABLE_EXPERIMENTAL
 //#define GL_GLEXT_PROTOTYPES
 //#include <GL/glext.h>
 #include <GL/glew.h>
 #include <GL/gl.h>
-#include <glm.hpp>
-#include <gtc/matrix_transform.hpp>
-#include <gtc/type_ptr.hpp>
+#include <glm/common.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-#include <gtx/rotate_vector.hpp>
-#include <gtx/closest_point.hpp>
+#include <glm/gtx/rotate_vector.hpp>
+#include <glm/gtx/closest_point.hpp>
 
 #include <SFML/Window.hpp>
 #include <SFML/Graphics/Image.hpp>
