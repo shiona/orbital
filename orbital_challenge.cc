@@ -809,12 +809,25 @@ int main(int argc, char **argv)
 
 		for(int i = 0; i < sf::Joystick::Count; i++) {
 			if(sf::Joystick::isConnected(i)) {
-				float y = - sf::Joystick::getAxisPosition(0, sf::Joystick::Y);
-				float x = sf::Joystick::getAxisPosition(0, sf::Joystick::X);
-				float u = - sf::Joystick::getAxisPosition(0, sf::Joystick::U);
-				float r = sf::Joystick::getAxisPosition(0, sf::Joystick::R);
-				float z = sf::Joystick::getAxisPosition(0, sf::Joystick::Z);
-				printf("Joy %i, x: %0.3f, y: %0.3f, u: %0.3f, r: %0.3f, z: %0.3f\n", i, x, y, u, r, z);
+
+				float y,x,u,v,z;
+				sf::Joystick::Identification joy_id = sf::Joystick::getIdentification(i);
+				if(joy_id.vendorId == 1356 && joy_id.productId == 1476) {
+					// PS4
+					y = - sf::Joystick::getAxisPosition(0, sf::Joystick::Y);
+					x = sf::Joystick::getAxisPosition(0, sf::Joystick::X);
+					u = - sf::Joystick::getAxisPosition(0, sf::Joystick::U);
+					v = sf::Joystick::getAxisPosition(0, sf::Joystick::V);
+					z = - sf::Joystick::getAxisPosition(0, sf::Joystick::R);
+				} else {
+					// Xbox one
+					y = - sf::Joystick::getAxisPosition(0, sf::Joystick::Y);
+					x = sf::Joystick::getAxisPosition(0, sf::Joystick::X);
+					u = - sf::Joystick::getAxisPosition(0, sf::Joystick::U);
+					v = sf::Joystick::getAxisPosition(0, sf::Joystick::R);
+					z = sf::Joystick::getAxisPosition(0, sf::Joystick::Z);
+				}
+				//printf("Joy %i, x: %0.3f, y: %0.3f, u: %0.3f, r: %0.3f, z: %0.3f\n", i, x, y, u, r, z);
 				const float DEADZONE = 5.0f;
 				if( x < DEADZONE && x > -DEADZONE ) { x = 0; }
 				if( y < DEADZONE && y > -DEADZONE ) { y = 0; }
@@ -824,7 +837,7 @@ int main(int argc, char **argv)
 				sigma += y*0.0002f;
 				theta += x*0.0002f;
 				lookatpos[0] = -u*0.01;
-				lookatpos[1] = -r*0.01;
+				lookatpos[1] = -v*0.01;
 
 				zoomfactor = 1 + z*0.0075;
 			}
