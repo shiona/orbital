@@ -824,7 +824,7 @@ int main(int argc, char **argv)
 					y = - sf::Joystick::getAxisPosition(0, sf::Joystick::Y);
 					x = sf::Joystick::getAxisPosition(0, sf::Joystick::X);
 					u = - sf::Joystick::getAxisPosition(0, sf::Joystick::U);
-					v = sf::Joystick::getAxisPosition(0, sf::Joystick::R);
+					v = sf::Joystick::getAxisPosition(0, sf::Joystick::V);
 					z = sf::Joystick::getAxisPosition(0, sf::Joystick::Z);
 				}
 				//printf("Joy %i, x: %0.3f, y: %0.3f, u: %0.3f, r: %0.3f, z: %0.3f\n", i, x, y, u, r, z);
