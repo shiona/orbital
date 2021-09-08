@@ -9,4 +9,4 @@ orbital.exe: orbital_challenge.cc models.cc
 	$(CC) -o orbital.exe $(CFLAGS) -DGLEW_STATIC -DSFML_STATIC -I$(INC) -L$(LIB) orbital_challenge.cc models.cc $(LINK)
 
 orbital: orbital_challenge.cc models.cc
-	g++ -g -o orbital -DSFML_STATIC -I./glm orbital_challenge.cc models.cc -lsfml-{window,graphics,system} -lGLEW -lGL -lfreetype -ljpeg
+	g++ -g -o orbital -DSFML_STATIC -I./glm orbital_challenge.cc models.cc -lsfml-{window,graphics,system} -lGLEW -lGL -lfreetype -ljpeg -Wall -Wextra

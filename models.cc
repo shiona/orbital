@@ -199,7 +199,7 @@ Satellite::Satellite() {
 	vertArray[18*3 + 2*3 + 2] = vertArray[18*3 + 3*3 + 2] = 0.25f;
 
 
-	for(int i = 0; i < vert_count *2; i++) {
+	for(unsigned int i = 0; i < vert_count *2; i++) {
 		texArray[i] = 0.0f;
 	}
 
@@ -313,8 +313,8 @@ Connections::Connections(const Position& start, const Position& end,
 	std::vector<GLuint> indices;
 
 	// Surface to satellite links
-	for(int i = 0; i < 2; i++) {
-		for(int j = 2; j < vertArray.size(); j++) {
+	for(unsigned int i = 0; i < 2; i++) {
+		for(unsigned int j = 2; j < vertArray.size(); j++) {
 			if(glm::dot(vertArray[i], vertArray[j]-vertArray[i]) > 0) {
 				indices.push_back(i);
 				indices.push_back(j);
@@ -327,8 +327,8 @@ Connections::Connections(const Position& start, const Position& end,
 	}
 
 	// Intersatellite links
-	for(int i = 2; i < vertArray.size()-1; i++) {
-		for(int j = i+1; j < vertArray.size(); j++) {
+	for(unsigned int i = 2; i < vertArray.size()-1; i++) {
+		for(unsigned int j = i+1; j < vertArray.size(); j++) {
 			glm::vec3 closest_point = glm::closestPointOnLine(glm::vec3(0.0f), vertArray[i], vertArray[j]);
 			if(glm::distance(closest_point, glm::vec3(0.0f)) > 1.0f ||
 					glm::distance(closest_point, vertArray[i]) > glm::distance(vertArray[i], vertArray[j]) ||
@@ -396,14 +396,14 @@ Sphere::Sphere(GLuint hor_slices, GLuint ver_slices, float radius) {
 	std::vector<GLfloat> vertArray(vert_count*3);
 	std::vector<GLfloat> texArray(vert_count*2);
 
-	for(int y = 0; y < hor_slices_; y++) {
+	for(unsigned int y = 0; y < hor_slices_; y++) {
 		float height1 = radius * cos(((float)y/(float)hor_slices_)*PI);
 		float radius1 = radius * sin(((float)y/(float)hor_slices_)*PI);
 		float height2 = radius * cos(((float)(y+1)/(float)hor_slices_)*PI);
 		float radius2 = radius * sin(((float)(y+1)/(float)hor_slices_)*PI);
 
 		//printf("ring:\n");
-		for(int s = 0; s <= ver_slices_; s++) {
+		for(unsigned int s = 0; s <= ver_slices_; s++) {
 			float cylinderx = sin(2*PI * ((float)s/(float)ver_slices_));
 			float cylindery = cos(2*PI * ((float)s/(float)ver_slices_));
 			//printf("%f, %f, %f\n", height1, radius1 * cylinderx, radius1 * cylindery);
@@ -502,7 +502,7 @@ void Sphere::draw() {
 	glBindTexture(GL_TEXTURE_2D, texture_handle_);
 
 	glBindVertexArray(vao_);
-	for(int i = 0; i < hor_slices_; i++) { // For every horizontal slice
+	for(unsigned int i = 0; i < hor_slices_; i++) { // For every horizontal slice
 		glDrawArrays (GL_TRIANGLE_STRIP, i*(2*(ver_slices_+1)), 2*(ver_slices_+1));
 	}
 	glBindVertexArray(0);

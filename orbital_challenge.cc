@@ -28,8 +28,8 @@
 #define HEIGHT (1000)
 
 GLuint shader_programme;
-GLuint view_handle;
-GLuint model_handle;
+GLint view_handle;
+GLint model_handle;
 
 bool init()
 {
@@ -105,7 +105,7 @@ bool init()
 		fprintf(stderr, "Link error\n");
 	}
 
-	GLuint proj_handle = glGetUniformLocation(shader_programme, "proj_mat");
+	GLint proj_handle = glGetUniformLocation(shader_programme, "proj_mat");
 	view_handle = glGetUniformLocation(shader_programme, "view_mat");
 	model_handle = glGetUniformLocation(shader_programme, "model_mat");
 	if(proj_handle == -1 || view_handle == -1) {
@@ -251,7 +251,7 @@ int main(int argc, char **argv)
 
 				// Reset projection matrix to keep aspect ratio.
 				glUseProgram (shader_programme);
-				GLuint proj_handle = glGetUniformLocation(shader_programme, "proj_mat");
+				GLint proj_handle = glGetUniformLocation(shader_programme, "proj_mat");
 				glm::mat4 proj_mat = glm::perspective(glm::radians(30.0f), (float) window_width / (float) window_height, 0.1f, 100.0f);
 				glUniformMatrix4fv(proj_handle, 1, GL_FALSE, &proj_mat[0][0]);
 			}
@@ -340,7 +340,7 @@ int main(int argc, char **argv)
 		);
 		glUniformMatrix4fv(view_handle, 1, GL_FALSE, &view_mat[0][0]);
 
-		GLuint proj_handle = glGetUniformLocation(shader_programme, "proj_mat");
+		GLint proj_handle = glGetUniformLocation(shader_programme, "proj_mat");
 		glm::mat4 proj_mat = glm::perspective(glm::radians(zoomfactor*30.0f), (float) window_width / (float) window_height, 0.1f, 100.0f);
 		glUniformMatrix4fv(proj_handle, 1, GL_FALSE, &proj_mat[0][0]);
 
