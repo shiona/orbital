@@ -52,9 +52,12 @@ bool init()
 		//"layout(location = 1) in vec2 tex;"
 		"in vec3 vp;"
 		"in vec2 tex;"
+		"in vec3 norm;"
 		"out vec2 tex_coord;"
+		"out vec3 nrm;"
 		"void main () {"
 		"  tex_coord = tex;"
+		"  nrm = norm;"
 		"  gl_Position = proj_mat * view_mat * model_mat * vec4 (vp, 1.0);"
 		//"  gl_Position = mat4(1.0) * vec4 (vp, 1.0);"
 		//"  gl_Position = vec4 (vp, 1.0);"
@@ -65,12 +68,16 @@ bool init()
 	const char* fragment_shader =
 		"#version 130\n"
 		"in vec2 tex_coord;"
+		"in vec3 nrm;"
 		"out vec4 frag_colour;"
 		"uniform sampler2D tex_sampler;"
 		"void main () {"
 		"  vec4 texel = texture(tex_sampler, tex_coord);"
 		"  if(texel.a < 0.5) { discard; } "
-		"  frag_colour = texel; "
+		"  frag_colour = texel;"
+		"  if(nrm != vec3(1.0)) {"
+		"    frag_colour *= vec4(nrm, 1.0); "
+        "  }"
 		"}";
 
 	GLuint vs = glCreateShader (GL_VERTEX_SHADER);
@@ -79,6 +86,8 @@ bool init()
 	GLuint fs = glCreateShader (GL_FRAGMENT_SHADER);
 	glShaderSource (fs, 1, &fragment_shader, NULL);
 	glCompileShader (fs);
+
+	glVertexAttrib3f(2, 1.0, 1.0, 1.0);
 
 	GLint compileStatus;
 	GLchar errorLog[512];

@@ -77,13 +77,9 @@ class Satellite : public Model
 class Connections : public Model
 {
 	private:
-		GLuint vert_vbo_;
-		GLuint vao_;
 		GLuint ibo_;
 
 		GLuint conn_count_;
-
-		GLuint texture_handle_;
 
 	public:
 		Connections(const Position& start, const Position& end,
@@ -96,11 +92,7 @@ class Connections : public Model
 class Sphere : public Model
 {
 	private:
-		GLuint texture_handle_;
-
-		GLuint vert_vbo_;
-		GLuint tex_vbo_;
-		GLuint vao_;
+		GLuint norm_vbo_;
 
 		GLuint ver_slices_;
 		GLuint hor_slices_;

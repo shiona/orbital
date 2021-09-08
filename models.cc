@@ -148,6 +148,7 @@ void Tower::draw(const Position& pos) {
 	glBindTexture(GL_TEXTURE_2D, texture_handle_);
 
 	glBindVertexArray(vao_);
+	glDisableVertexAttribArray(2);
 	glDrawArrays (GL_TRIANGLES, 0, 3*4);
 	glBindVertexArray(0);
 }
@@ -274,6 +275,7 @@ void Satellite::draw(const Position& pos) {
 	glBindTexture(GL_TEXTURE_2D, texture_handle_);
 
 	glBindVertexArray(vao_);
+	glDisableVertexAttribArray(2);
 
 	// Sides
 	glDrawArrays (GL_QUAD_STRIP, 0, 5*2);
@@ -380,6 +382,7 @@ void Connections::draw() {
 	glUniformMatrix4fv(model_handle, 1, GL_FALSE, &glm::mat4(1.0f)[0][0]);
 
 	glBindVertexArray(vao_);
+	glDisableVertexAttribArray(2);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_);
 	glDrawElements(GL_LINES, conn_count_*2, GL_UNSIGNED_INT, (void*)0);
 	glBindVertexArray(0);
@@ -395,6 +398,7 @@ Sphere::Sphere(GLuint hor_slices, GLuint ver_slices, float radius) {
 
 	std::vector<GLfloat> vertArray(vert_count*3);
 	std::vector<GLfloat> texArray(vert_count*2);
+	std::vector<GLfloat> normArray(vert_count*3);
 
 	for(unsigned int y = 0; y < hor_slices_; y++) {
 		float height1 = radius * cos(((float)y/(float)hor_slices_)*PI);
@@ -429,6 +433,11 @@ Sphere::Sphere(GLuint hor_slices, GLuint ver_slices, float radius) {
 		  */
 	}
 
+	for(unsigned int i = 0; i < vertArray.size(); i++)
+	{
+		normArray[i] = vertArray[i] / radius; // For a sphere centered at origin, normal is the same as vertex position. Just normalize
+	}
+
 	// Vertex position attribute vbo;
 	vert_vbo_ = 0;
 	glGenBuffers(1, &vert_vbo_);
@@ -441,6 +450,11 @@ Sphere::Sphere(GLuint hor_slices, GLuint ver_slices, float radius) {
 	glBindBuffer (GL_ARRAY_BUFFER, tex_vbo_);
 	glBufferData (GL_ARRAY_BUFFER, 2*vert_count*sizeof(float), &texArray[0], GL_STATIC_DRAW);
 
+	norm_vbo_ = 2;
+	glGenBuffers(1, &norm_vbo_);
+	glBindBuffer (GL_ARRAY_BUFFER, norm_vbo_);
+	glBufferData (GL_ARRAY_BUFFER, 3*vert_count*sizeof(float), &normArray[0], GL_STATIC_DRAW);
+
 	// Sphere vao, attr 0 is vertex position, attr 1 is uv coordinates
 	glGenVertexArrays(1, &vao_);
 	glBindVertexArray(vao_);
@@ -452,6 +466,10 @@ Sphere::Sphere(GLuint hor_slices, GLuint ver_slices, float radius) {
 	glBindBuffer(GL_ARRAY_BUFFER, tex_vbo_);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, norm_vbo_);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(2);
 
 	// Unbind vao, (so changes to vbos don't matter ?)
 	glBindVertexArray(0);
@@ -502,6 +520,7 @@ void Sphere::draw() {
 	glBindTexture(GL_TEXTURE_2D, texture_handle_);
 
 	glBindVertexArray(vao_);
+	glEnableVertexAttribArray(2);
 	for(unsigned int i = 0; i < hor_slices_; i++) { // For every horizontal slice
 		glDrawArrays (GL_TRIANGLE_STRIP, i*(2*(ver_slices_+1)), 2*(ver_slices_+1));
 	}
